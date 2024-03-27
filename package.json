@@ -54,7 +54,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/reZach/secure-electron-template.git"
+    "url": "git+https://github.com/Jingxian999/mac-success.git"
   },
   "keywords": [
     "electron",
@@ -71,9 +71,9 @@
   "author": "reZach",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/reZach/secure-electron-template/issues"
+    "url": "https://github.com/Jingxian999/mac-success/issues"
   },
-  "homepage": "https://github.com/reZach/secure-electron-template#readme",
+  "homepage": "https://github.com/Jingxian999/mac-success#readme",
   "browserslist": [
     "last 2 Chrome versions"
   ],
