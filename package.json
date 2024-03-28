@@ -68,7 +68,10 @@
     "i18n",
     "boilerplate"
   ],
-  "author": "reZach",
+  "author": {
+    "name": "Jingxian Huang",
+    "email": "jhuang30@usc.edu"
+  },
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/Jingxian999/mac-success/issues"
