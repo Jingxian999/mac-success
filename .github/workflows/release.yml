@@ -4,7 +4,32 @@ on:
   push
 
 jobs:
+  create_release:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Get Build Number
+        id: build_number
+        uses: einaregilsson/build-number@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.build_number.outputs.build_number }}
+          release_name: Release-${{ steps.build_number.outputs.build_number }}
+          draft: false
+          prerelease: false
+
+
   release:
+    needs: create_release
     # runs-on: self-hosted
     runs-on: ${{matrix.os}}
     permissions:
@@ -17,11 +42,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '21.7.1'
-      - name: Get Build Number
-        id: build_number
-        uses: einaregilsson/build-number@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+     
 
       - name: Linux Release
         if: matrix.os == 'ubuntu-latest'
@@ -45,16 +66,7 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create Release        
-        id: create_release
-        uses: actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ steps.build_number.outputs.build_number }}
-          release_name: Release-${{ steps.build_number.outputs.build_number }}
-          draft: false
-          prerelease: false
+      
           
       - name: Find .deb Asset
         if: matrix.os == 'ubuntu-latest'
