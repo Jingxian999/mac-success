@@ -116,7 +116,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_deb_asset.outputs.deb_file }}
           asset_name: ${{ steps.find_deb_asset.outputs.deb_file }}
           asset_content_type: application/vnd.debian.binary-package
@@ -126,7 +126,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_snap_asset.outputs.snap_file }}
           asset_name: ${{ steps.find_snap_asset.outputs.snap_file }}
           asset_content_type: application/octet-stream
@@ -136,7 +136,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
           asset_path: ${{ steps.find_appimage_asset.outputs.appimage_file }}
           asset_name: ${{ steps.find_appimage_asset.outputs.appimage_file }}
           asset_content_type: application/octet-stream
@@ -147,7 +147,7 @@ jobs:
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            upload_url: ${{ needs.create_release.outputs.upload_url }}
             asset_path: ${{ steps.find_dmg_asset.outputs.dmg_file }}
             asset_name: ${{ steps.find_dmg_asset.outputs.dmg_file }}
             asset_content_type: application/octet-stream
