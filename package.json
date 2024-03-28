@@ -21,7 +21,7 @@
     "test": "mocha"
   },
   "build": {
-    "productName": "mac-success-0p00p[;//'[]≥",
+    "productName": "mac-success",
     "appId": "com.yourcompany|electron.yourproductname",
     "directories": {
       "buildResources": "resources"
