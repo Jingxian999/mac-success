@@ -29,8 +29,8 @@ jobs:
   release:
     needs: create_release
    
-    runs-on: ${{matrix.os}}
-    #runs-on: self-hosted
+    # runs-on: ${{matrix.os}}
+    runs-on: self-hosted
     permissions:
       contents: write
     strategy:
