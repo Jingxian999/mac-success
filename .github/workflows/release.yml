@@ -92,19 +92,28 @@ jobs:
         run: |
             DMG_FILE=$(find ./dist -name "*.dmg" -type f -print -quit)
             echo "::set-output name=dmg_file::$DMG_FILE"
- 
+      
+      - name: Decode API key
+        run: |
+          echo "${{ secrets.AUTH_KEY_P8 }}" | base64 --decode > AuthKey_3YK6J5LXFG.p8
+
+      - name: Set API key path
+        run: |
+          echo "API_KEY_PATH=$PWD/AuthKey_3YK6J5LXFG.p8" >> $GITHUB_ENV
+            
       - name: mac notarize
         if: matrix.os == 'macos-latest'
         env:
             APPLE_ID: harvilabusc@gmail.com
             ISSUER_UUID: 8ec4fd53-115a-4083-9abd-8c3fe9f95ed3
             API_KEY_ID: 3YK6J5LXFG
-            API_KEY_PATH: ./private_keys/AuthKey_3YK6J5LXFG.p8
+          
         run: |
+            
             xcrun notarytool submit "${{steps.find_dmg_asset.outputs.dmg_file}}" \
                 --issuer "${{ env.ISSUER_UUID }}" \
                 --key-id "${{ env.API_KEY_ID }}" \
-                --key "${{ env.API_KEY_PATH }}"
+                --key "$API_KEY_PATH"
 
 
 
