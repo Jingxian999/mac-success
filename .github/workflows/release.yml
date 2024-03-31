@@ -1,8 +1,6 @@
 name: Build/release
-
 on:
   push
-
 jobs:
   create_release:
     runs-on: macos-latest
@@ -31,7 +29,8 @@ jobs:
   release:
     needs: create_release
    
-    runs-on: ${{matrix.os}}
+    #runs-on: ${{matrix.os}}
+    runs-on: self-hosted
     permissions:
       contents: write
     strategy:
