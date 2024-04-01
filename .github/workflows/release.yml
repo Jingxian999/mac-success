@@ -29,8 +29,8 @@ jobs:
   release:
     needs: create_release
    
-    # runs-on: ${{matrix.os}}
-    runs-on: self-hosted
+    runs-on: ${{matrix.os}}
+    # runs-on: self-hosted
     permissions:
       contents: write
     strategy:
@@ -105,9 +105,7 @@ jobs:
         if: matrix.os == 'macos-latest'
         env:
             APPLE_ID: harvilabusc@gmail.com
-            # ISSUER_UUID: 8ec4fd53-115a-4083-9abd-8c3fe9f95ed3
-            # API_KEY_ID: 3YK6J5LXFG
-          
+            
         run: |
             
             xcrun notarytool submit "${{steps.find_dmg_asset.outputs.dmg_file}}" \
