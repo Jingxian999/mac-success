@@ -48,7 +48,7 @@ jobs:
           npm i
           npx update-browserslist-db@latest
           npm run dist-windows
-          shell: bash
+        shell: bash
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
 
