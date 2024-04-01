@@ -62,8 +62,14 @@ jobs:
             npx update-browserslist-db@latest
             npm run dist-mac
         shell: bash
+     
+         
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            mac_certs: ${{ secrets.mac_certs }}
+            mac_certs_password: ${{ secrets.mac_certs_password }}
+
+            
 
       
           
