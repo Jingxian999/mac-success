@@ -35,7 +35,8 @@ jobs:
       contents: write
     strategy:
       matrix:
-        os: [macos-latest,ubuntu-latest,windows-latest]
+        # os: [macos-latest,ubuntu-latest,windows-latest]
+        os: [windows-latest]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -125,6 +126,7 @@ jobs:
             echo "::set-output name=dmg_file::$DMG_FILE"
       
       - name: Decode API key
+        if: matrix.os == 'macos-latest'
         run: |
           echo "${{ secrets.AUTH_KEY_P8 }}" | base64 --decode > AuthKey_3YK6J5LXFG.p8
 
