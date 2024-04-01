@@ -53,7 +53,24 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      - name: Decode and Import the Code Signing Certificate
+        if: matrix.os == 'macos-latest'
+        run: |
+            echo "${{ secrets.mac_certs }}" | base64 --decode > mac_certificate.p12
+            # Create a temporary keychain
+            security create-keychain -p "temporary-password" temp.keychain
+            # Import the certificate to the temporary keychain
+            security import mac_certificate.p12 -k ~/Library/Keychains/temp.keychain -P ${{ secrets.mac_certs_password }} -T /usr/bin/codesign
+            # Make sure codesign is allowed to access the keychain
+            security set-key-partition-list -S apple-tool:,apple: -s -k "temporary-password" ~/Library/Keychains/temp.keychain
+            # Add the temporary keychain to the list of searchable keychains
+            security list-keychains -s ~/Library/Keychains/temp.keychain
+            # Unlock the keychain
+            security unlock-keychain -p "temporary-password" ~/Library/Keychains/temp.keychain
+        env:
+            mac_certs_password: ${{ secrets.mac_certs_password }}
+            
       - name: Mac Release
         if: matrix.os == 'macos-latest'
         run: |
@@ -62,7 +79,6 @@ jobs:
             npx update-browserslist-db@latest
             npm run dist-mac
         shell: bash
-     
          
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
