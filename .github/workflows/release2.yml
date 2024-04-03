@@ -151,6 +151,22 @@ jobs:
           sudo dpkg --add-architecture i386
           sudo apt update
           sudo apt install -y wine-stable wine32    
+
+    - name: Setup Dependencies
+      run: |
+            sudo dpkg --add-architecture i386
+            sudo apt update
+            sudo apt install -y wine-stable wine32 xvfb
+        
+    - name: Setup xvfb
+      run: |
+            Xvfb :99 &
+            export DISPLAY=:99
+        
+    - name: Install Wine Mono
+      run: |
+            wget https://dl.winehq.org/wine/wine-mono/4.9.4/wine-mono-4.9.4.msi
+            wine msiexec /i wine-mono-4.9.4.msi      
       
     - name: Windows Release
       run: |
