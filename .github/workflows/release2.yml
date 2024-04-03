@@ -145,6 +145,12 @@ jobs:
     - uses: actions/setup-node@v2
       with:
         node-version: '21.7.1' 
+
+    - name: Install Wine
+      run: |
+          sudo dpkg --add-architecture i386
+          sudo apt update
+          sudo apt install -y wine-stable wine32    
       
     - name: Windows Release
       run: |
