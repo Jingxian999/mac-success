@@ -1,4 +1,4 @@
-name: Build/release
+name: Build/release-refined
 on:
   push
 
@@ -134,3 +134,58 @@ jobs:
          asset_path: ${{ steps.find_dmg_asset.outputs.dmg_file }}
          asset_name: ${{ steps.find_dmg_asset.outputs.dmg_file }}
          asset_content_type: application/octet-stream
+
+  release-windows:
+    needs: create_release
+    runs-on: ubuntu-latest
+    permissions:
+        contents: write 
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '21.7.1' 
+      
+    - name: Windows Release
+      run: |
+          echo "Running Windows specific steps"
+          npm i
+          npx update-browserslist-db@latest
+          npm run dist-windows
+      shell: bash
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    
+
+
+    - name: Find .exe Asset
+      id: find_exe_asset
+      run: |
+            $EXE_FILE = (Get-ChildItem -Path "./dist" -Filter "*.exe" -Recurse | Select-Object -First 1).FullName
+            echo "EXE_FILE=$EXE_FILE" >> $env:GITHUB_ENV
+
+    - name: Find .msi Asset   
+      id: find_msi_asset
+      run: |
+        $MSI_FILE = (Get-ChildItem -Path "./dist" -Filter "*.msi" -Recurse | Select-Object -First 1).FullName
+        echo "MSI_FILE=$MSI_FILE" >> $env:GITHUB_ENV
+  
+    - name: Upload .exe Asset
+      uses: actions/upload-release-asset@v1
+      env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ${{ env.EXE_FILE }}
+        asset_name: ${{ github.event.repository.name }}-setup-${{ steps.build_number.outputs.build_number }}.exe
+        asset_content_type: application/octet-stream
+
+
+    - name: Upload .msi Asset
+      uses: actions/upload-release-asset@v1
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ${{ env.MSI_FILE }}
+        asset_name: ${{ github.event.repository.name }}-setup-${{ steps.build_number.outputs.build_number }}.msi
+        asset_content_type: application/octet-stream        
