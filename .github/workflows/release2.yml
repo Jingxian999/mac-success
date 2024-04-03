@@ -1,0 +1,136 @@
+name: Build/release
+on:
+  push
+
+jobs:
+  create_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Get Build Number
+        id: build_number
+        uses: einaregilsson/build-number@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.1.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.build_number.outputs.build_number }}
+          release_name: Release-${{ steps.build_number.outputs.build_number }}
+          draft: false
+          prerelease: false
+
+  release-ubuntu:
+   needs: create_release
+   runs-on: ubuntu-latest
+   permissions:
+        contents: write 
+   steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '21.7.1' 
+
+    - name: Linux Release
+      run: |
+        echo "Running Linux specific steps"
+        npm i
+        npx update-browserslist-db@latest
+        npm run dist-linux
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
+
+    - name: Find .AppImage Asset
+      id: find_appimage_asset
+      run: |
+          APPIMAGE_FILE=$(find ./dist -name "*.AppImage" -type f -print -quit)
+          echo "::set-output name=appimage_file::$APPIMAGE_FILE"
+
+    - name: Upload .AppImage Asset
+      uses: actions/upload-release-asset@v1
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+            upload_url: ${{ needs.create_release.outputs.upload_url }}
+            asset_path: ${{ steps.find_appimage_asset.outputs.appimage_file }}
+            asset_name: ${{ steps.find_appimage_asset.outputs.appimage_file }}
+            asset_content_type: application/octet-stream
+
+  release-mac:
+   needs: create_release
+   runs-on: macos-latest
+   permissions:
+        contents: write 
+   steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-node@v2
+      with:
+            node-version: '21.7.1'       
+            
+    - name: Decode and Import the Code Signing Certificate
+      run: |
+        echo "${{ secrets.mac_certs }}" | base64 --decode > mac_certificate.p12
+        # Create a temporary keychain
+        security create-keychain -p "temporary-password" temp.keychain
+        # Import the certificate to the temporary keychain
+        security import mac_certificate.p12 -k ~/Library/Keychains/temp.keychain -P ${{ secrets.mac_certs_password }} -T /usr/bin/codesign
+        # Make sure codesign is allowed to access the keychain
+        security set-key-partition-list -S apple-tool:,apple: -s -k "temporary-password" ~/Library/Keychains/temp.keychain
+        # Add the temporary keychain to the list of searchable keychains
+        security list-keychains -s ~/Library/Keychains/temp.keychain
+        # Unlock the keychain
+        security unlock-keychain -p "temporary-password" ~/Library/Keychains/temp.keychain
+      env:
+        mac_certs_password: ${{ secrets.mac_certs_password }}
+        
+    - name: Mac Release
+      run: |
+            echo "Running mac specific steps"
+            npm i
+            npx update-browserslist-db@latest
+            npm run dist-mac
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        mac_certs: ${{ secrets.mac_certs }}
+        mac_certs_password: ${{ secrets.mac_certs_password }}
+
+    - name: Find .dmg Asset      
+      id: find_dmg_asset
+      run: |
+            DMG_FILE=$(find ./dist -name "*.dmg" -type f -print -quit)
+            echo "::set-output name=dmg_file::$DMG_FILE"
+
+    - name: Decode API key           
+      run: |
+            echo "${{ secrets.AUTH_KEY_P8 }}" | base64 --decode > AuthKey_3YK6J5LXFG.p8
+
+    - name: Set API key path
+      run: |
+            echo "API_KEY_PATH=$PWD/AuthKey_3YK6J5LXFG.p8" >> $GITHUB_ENV
+
+    - name: mac notarize
+      env:
+        APPLE_ID: harvilabusc@gmail.com    
+      run: |   
+        xcrun notarytool submit "${{steps.find_dmg_asset.outputs.dmg_file}}" \
+            --issuer "${{ secrets.ISSUER_UUID }}" \
+            --key-id "${{ secrets.API_KEY_ID }}" \
+            --key "$API_KEY_PATH"
+
+    - name: Upload .dmg Asset
+      uses: actions/upload-release-asset@v1
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+         upload_url: ${{ needs.create_release.outputs.upload_url }}
+         asset_path: ${{ steps.find_dmg_asset.outputs.dmg_file }}
+         asset_name: ${{ steps.find_dmg_asset.outputs.dmg_file }}
+         asset_content_type: application/octet-stream
