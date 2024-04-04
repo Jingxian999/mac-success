@@ -47,7 +47,16 @@ jobs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      
-
+    - name: Find .deb Asset
+      id: find_deb_asset
+      run: |
+          DEB_FILE=$(find ./dist -name "*.deb" -type f -print -quit)
+          echo "::set-output name=deb_file::$DEB_FILE"
+    - name: Find .snap Asset  
+      id: find_snap_asset
+      run: |
+            SNAP_FILE=$(find ./dist -name "*.snap" -type f -print -quit)
+            echo "::set-output name=snap_file::$SNAP_FILE"     
     - name: Find .AppImage Asset
       id: find_appimage_asset
       run: |
@@ -63,6 +72,26 @@ jobs:
             asset_path: ${{ steps.find_appimage_asset.outputs.appimage_file }}
             asset_name: ${{ steps.find_appimage_asset.outputs.appimage_file }}
             asset_content_type: application/octet-stream
+
+    - name: Upload .snap Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.find_snap_asset.outputs.snap_file }}
+        asset_name: ${{ steps.find_snap_asset.outputs.snap_file }}
+        asset_content_type: application/octet-stream    
+        
+    - name: Upload .deb Asset
+      uses: actions/upload-release-asset@v1
+      env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ needs.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.find_deb_asset.outputs.deb_file }}
+          asset_name: ${{ steps.find_deb_asset.outputs.deb_file }}
+          asset_content_type: application/vnd.debian.binary-package    
 
   release-mac:
    needs: create_release
